@@ -11,9 +11,19 @@ import java.nio.ByteBuffer;
 
 public class sha1Impl {
 
-    public static String digestIt(byte[] dataIn) {
+    public static final int[] H = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
+
+    public static String getHashDigest(byte[] dataIn, int[] incomingH) {
+        int[] H;
+        if(incomingH == null) {
+            H = new int[sha1Impl.H.length];
+            for(int i = 0; i < sha1Impl.H.length; i++)
+                H[i] = sha1Impl.H[i];
+        } else {
+            H = incomingH;
+        }
+
         byte[] paddedData = padTheMessage(dataIn);
-        int[] H = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
         int[] K = {0x5A827999, 0x6ED9EBA1, 0x8F1BBCDC, 0xCA62C1D6};
 
         if (paddedData.length % 64 != 0) {
@@ -32,7 +42,7 @@ public class sha1Impl {
         return intArrayToHexStr(H);
     }
 
-    private static byte[] padTheMessage(byte[] data) {
+    public static byte[] padTheMessage(byte[] data) {
         int origLength = data.length;
         int tailLength = origLength % 64;
         int padLength = 0;
