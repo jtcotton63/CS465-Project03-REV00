@@ -7,13 +7,19 @@
 *
 */
 
-import java.nio.ByteBuffer;
-
 public class sha1Impl {
 
     public static final int[] H = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
 
-    public static String getHashDigest(byte[] dataIn, int[] incomingH) {
+    /**
+     *
+     * @param dataIn the bytes of the data coming in
+     * @param incomingH the new H with which to initialize the sha1 algorithm
+     * @param sizeOffset the amount to offset the size of the sha1 processed block counter.
+     *                   If no size offset is desired, simply set sizeOffset = 0.
+     * @return
+     */
+    public static String getHashDigest(byte[] dataIn, int[] incomingH, int sizeOffset) {
         int[] H;
         if(incomingH == null) {
             H = new int[sha1Impl.H.length];
@@ -23,7 +29,7 @@ public class sha1Impl {
             H = incomingH;
         }
 
-        byte[] paddedData = padTheMessage(dataIn);
+        byte[] paddedData = padTheMessage(dataIn, sizeOffset);
         int[] K = {0x5A827999, 0x6ED9EBA1, 0x8F1BBCDC, 0xCA62C1D6};
 
         if (paddedData.length % 64 != 0) {
@@ -42,7 +48,7 @@ public class sha1Impl {
         return intArrayToHexStr(H);
     }
 
-    public static byte[] padTheMessage(byte[] data) {
+    public static byte[] padTheMessage(byte[] data, int sizeOffset) {
         int origLength = data.length;
         int tailLength = origLength % 64;
         int padLength = 0;
@@ -54,7 +60,7 @@ public class sha1Impl {
 
         byte[] thePad = new byte[padLength];
         thePad[0] = (byte) 0x80;
-        long lengthInBits = origLength * 8;
+        long lengthInBits = origLength * 8 + sizeOffset;
 
         for (int cnt = 0; cnt < 8; cnt++) {
             thePad[thePad.length - 1 - cnt] = (byte) ((lengthInBits >> (8 * cnt)) & 0x00000000000000FF);
@@ -143,17 +149,6 @@ public class sha1Impl {
         H[2] += C;
         H[3] += D;
         H[4] += E;
-
-        int n;
-        for (n = 0; n < 16; n++) {
-            System.out.println("W[" + n + "] = " + toHexString(W[n]));
-        }
-
-        System.out.println("H0:" + Integer.toHexString(H[0]));
-        System.out.println("H1:" + Integer.toHexString(H[1]));
-        System.out.println("H2:" + Integer.toHexString(H[2]));
-        System.out.println("H3:" + Integer.toHexString(H[3]));
-        System.out.println("H4:" + Integer.toHexString(H[4]));
     }
 
     private static final int rotateLeft(int value, int bits) {
@@ -190,29 +185,5 @@ public class sha1Impl {
         }//end for loop
         return output;
     }//end intArrayToHexStr
-
-    static final String toHexString(final ByteBuffer bb) {
-        final StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < bb.limit(); i += 4) {
-            if (i % 4 == 0) {
-                sb.append('\n');
-            }
-            sb.append(toHexString(bb.getInt(i))).append(' ');
-        }
-        sb.append('\n');
-        return sb.toString();
-    }
-
-    static final String toHexString(int x) {
-        return padStr(Integer.toHexString(x));
-    }
-    static final String ZEROS = "00000000";
-
-    static final String padStr(String s) {
-        if (s.length() > 8) {
-            return s.substring(s.length() - 8);
-        }
-        return ZEROS.substring(s.length()) + s;
-    }
 
 }
